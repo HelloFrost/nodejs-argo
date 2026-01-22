@@ -11,6 +11,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  # 将用户名转换为小写，这是关键
+  USERNAME: ${{ github.repository_owner | lower }}
+  IMAGE_NAME: hello  # 你的镜像名称
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,6 +37,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Debug - Show variables
+        run: |
+          echo "Repository owner (original): ${{ github.repository_owner }}"
+          echo "Repository owner (lowercase): ${{ env.USERNAME }}"
+          echo "Image name: ${{ env.IMAGE_NAME }}"
+          echo "Full image tag: ghcr.io/${{ env.USERNAME }}/${{ env.IMAGE_NAME }}:latest"
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -39,7 +51,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/hello:latest
+            ghcr.io/${{ env.USERNAME }}/${{ env.IMAGE_NAME }}:latest
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.description=HTTP Server
